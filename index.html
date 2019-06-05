@@ -1,0 +1,128 @@
+<head>
+  <style>
+    body {
+      margin: 0
+    }
+
+    svg {
+      background: #eee;
+    }
+
+    .sphere {
+      fill: #fff;
+    }
+
+    .land {
+      fill: #000;
+    }
+
+    .boundary {
+      fill: none;
+      stroke: #fff;
+      stroke-linejoin: round;
+      stroke-linecap: round;
+      vector-effect: non-scaling-stroke;
+    }
+  </style>
+
+  <script src="//d3js.org/d3.v5.min.js"></script>
+  <script src="//unpkg.com/topojson@3"></script>
+</head>
+
+<body>
+  <script>
+    const width = window.innerWidth;
+    const height = window.innerHeight;
+
+    const projection = d3.geoMercator()
+      .translate([width / 2, height / 2])
+      .scale((width - 1) / 2 / Math.PI);
+
+    const path = d3.geoPath()
+      .projection(projection);
+
+    const zoom = d3.zoom()
+      .scaleExtent([1, 20])
+      .on('zoom', zoomed);
+
+    const svg = d3.select('body')
+      .append('svg')
+      .attr('width', width)
+      .attr('height', height);
+
+    const g = svg.append('g');
+
+    svg.call(zoom);
+
+    d3.json('//unpkg.com/world-atlas@1/world/110m.json')
+      .then(world => {
+
+
+        g.append('path')
+          .datum(topojson.merge(world, world.objects.countries.geometries))
+          .attr('class', 'land')
+          .attr('d', path);
+
+      });
+
+    function zoomed() {
+      g
+        .selectAll('path') // To prevent stroke width from scaling
+        .attr('transform', d3.event.transform);
+    }
+
+
+
+    var rectSize = 10;
+    var svgSize = document.querySelector("svg").getBoundingClientRect()
+
+    var widthNumber = Math.ceil(svgSize.width / rectSize);
+    var heightNumber = Math.ceil(svgSize.height / rectSize);
+
+    for (let indexW = 0; indexW < widthNumber; indexW++) {
+
+      for (let indexH = 0; indexH < heightNumber; indexH++) {
+        svg.append('rect')
+          .attr("x", indexW *  rectSize )
+          .attr("y", indexH * rectSize )
+          .attr("width", rectSize)
+          .attr("height", rectSize)
+          .style("stroke", "white")
+          .style("fill", "none")
+          .style("stroke-width",1);
+      }
+
+    }
+
+
+
+
+
+    // Create the export function - this will just export 
+    // the first svg element it finds
+    function svgToCanvas() {
+      var svg = d3.select("svg"),
+        img = new Image(),
+        serializer = new XMLSerializer();
+      var w = svg.get
+      // prepend style to svg
+      svg.insert('defs', ":first-child")
+      // generate IMG in new tab
+      var svgStr = serializer.serializeToString(svg.node());
+      img.onload = function () {
+        h = this.height;
+        w = this.width;
+        var canvas = document.createElement("canvas");
+        document.body.appendChild(canvas)
+        canvas.width = w;
+        canvas.height = h;
+        canvas.getContext("2d").drawImage(this, 0, 0, w, h);
+
+        canvas.getContext("2d").getImageData(10, 10, 1, 1).data
+        console.log('', canvas);
+
+      }
+      img.src = 'data:image/svg+xml;base64,' + window.btoa(unescape(encodeURIComponent(svgStr)));
+    };
+
+  </script>
