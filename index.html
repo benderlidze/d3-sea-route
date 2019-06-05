@@ -93,12 +93,20 @@
           .style("stroke", "white")
           .style("fill", "none")
           .style("stroke-width",1);
-        matrix[indexW][indexH] = 0;
+
+        svg.append('circle')
+          .attr("cx", indexW *  rectSize + rectSize/2)
+          .attr("cy", indexH * rectSize + rectSize/2)
+          .attr("r", 1)
+          .style("fill", "red")
+
+        
+        matrix[indexW][indexH] = [indexW *  rectSize + rectSize/2, indexH * rectSize + rectSize/2];
       }
 
     }
 
-    
+
 
 
 
