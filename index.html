@@ -78,8 +78,11 @@
 
     var widthNumber = Math.ceil(svgSize.width / rectSize);
     var heightNumber = Math.ceil(svgSize.height / rectSize);
+    var matrix = [];
 
     for (let indexW = 0; indexW < widthNumber; indexW++) {
+
+      matrix[indexW] = [];
 
       for (let indexH = 0; indexH < heightNumber; indexH++) {
         svg.append('rect')
@@ -90,11 +93,12 @@
           .style("stroke", "white")
           .style("fill", "none")
           .style("stroke-width",1);
+        matrix[indexW][indexH] = 0;
       }
 
     }
 
-
+    
 
 
 
