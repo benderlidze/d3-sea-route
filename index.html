@@ -23,6 +23,13 @@
       stroke-linecap: round;
       vector-effect: non-scaling-stroke;
     }
+
+    #toCanvasButton {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+
+    }
   </style>
 
   <script src="//d3js.org/d3.v5.min.js"></script>
@@ -30,9 +37,17 @@
 </head>
 
 <body>
+
+  <button id="toCanvasButton">To canvas</button>
   <script>
     const width = window.innerWidth;
     const height = window.innerHeight;
+    const toCanvasButton = document.querySelector("#toCanvasButton");
+    let canvas;
+
+    toCanvasButton.addEventListener("click", () => {
+      svgToCanvas();
+    })
 
     const projection = d3.geoMercator()
       .translate([width / 2, height / 2])
@@ -73,36 +88,38 @@
 
 
 
-    var rectSize = 10;
-    var svgSize = document.querySelector("svg").getBoundingClientRect()
+    const rectSize = 10;
+    const svgSize = document.querySelector("svg").getBoundingClientRect()
 
-    var widthNumber = Math.ceil(svgSize.width / rectSize);
-    var heightNumber = Math.ceil(svgSize.height / rectSize);
-    var matrix = [];
+    const widthNumber = Math.ceil(svgSize.width / rectSize);
+    const heightNumber = Math.ceil(svgSize.height / rectSize);
+    let matrix = [];
+    let colorMatrix = [];
 
     for (let indexW = 0; indexW < widthNumber; indexW++) {
 
       matrix[indexW] = [];
+      colorMatrix[indexW] = [];
 
       for (let indexH = 0; indexH < heightNumber; indexH++) {
         svg.append('rect')
-          .attr("x", indexW *  rectSize )
-          .attr("y", indexH * rectSize )
+          .attr("x", indexW * rectSize)
+          .attr("y", indexH * rectSize)
           .attr("width", rectSize)
           .attr("height", rectSize)
           .style("stroke", "white")
           .style("fill", "none")
-          .style("stroke-width",1);
+          .style("stroke-width", 1);
 
-        svg.append('circle')
-          .attr("cx", indexW *  rectSize + rectSize/2)
-          .attr("cy", indexH * rectSize + rectSize/2)
-          .attr("r", 1)
-          .style("fill", "red")
-        
-        matrix[indexW][indexH] = [indexW *  rectSize + rectSize/2, indexH * rectSize + rectSize/2];
+        // svg.append('circle')
+        //   .attr("cx", indexW *  rectSize + rectSize/2)
+        //   .attr("cy", indexH * rectSize + rectSize/2)
+        //   .attr("r", 1)
+        //   .style("fill", "red")
+
+        matrix[indexW][indexH] = [indexW * rectSize + rectSize / 2, indexH * rectSize + rectSize / 2];
+        colorMatrix[indexW][indexH] = {}
       }
-
     }
 
 
@@ -123,17 +140,52 @@
       img.onload = function () {
         h = this.height;
         w = this.width;
-        var canvas = document.createElement("canvas");
+        canvas = document.createElement("canvas");
         document.body.appendChild(canvas)
         canvas.width = w;
         canvas.height = h;
         canvas.getContext("2d").drawImage(this, 0, 0, w, h);
 
-        canvas.getContext("2d").getImageData(10, 10, 1, 1).data
+        var pixel = canvas.getContext("2d").getImageData(10, 10, 1, 1).data
         console.log('', canvas);
 
+        for (let index = 0; index < matrix.length; index++) {
+          for (let i = 0; i < matrix[index].length; i++) {
+
+            var pixel = canvas.getContext("2d").getImageData(matrix[index][i][0], matrix[index][i][1], 1, 1).data.toString()
+            //console.log('',pixel);
+            colorMatrix[index][i] = {
+              coord: matrix[index][i],
+              color: pixel
+            }
+          }
+        }
+        buildNewMap (colorMatrix)
       }
       img.src = 'data:image/svg+xml;base64,' + window.btoa(unescape(encodeURIComponent(svgStr)));
     };
+
+
+    function buildNewMap (colorMatrix){
+
+      const matrix = colorMatrix;
+      svg.selectAll("*").remove();
+      for (let index = 0; index < matrix.length; index++) {
+        for (let i = 0; i < matrix[index].length; i++) {
+
+          const {coord,color} = matrix[index][i];
+          
+          svg.append('rect')
+          .attr("x", coord[0])
+          .attr("y", coord[1])
+          .attr("width", rectSize)
+          .attr("height", rectSize)
+          .style("stroke", "black")
+          .style("fill", 'rgba('+color+')')
+          //.style("stroke-width", 1);
+
+        }
+      }
+    }
 
   </script>
